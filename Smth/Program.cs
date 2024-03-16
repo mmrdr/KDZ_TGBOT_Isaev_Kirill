@@ -1,17 +1,43 @@
-﻿using Telegram.Bot;
+﻿using System.Net.Security;
+using Telegram.Bot;
+using Telegram.Bot.Args;
+using Telegram.Bot.Exceptions;
+using Telegram.Bot.Polling;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+
 
 namespace Smth
 {
     internal class Program
     {
-        private static TelegramBotClient botClient;
+        private const string TELEGRAM_TOKEN = "7067595343:AAFGej232xNIbzGt91dXZP-_rMgL0R8BHfQ";
 
-        static void Main(string[] args)
+        private static ITelegramBotClient botClient;
+
+        private static ReceiverOptions receiverOptions;
+
+        static async Task Main(string[] args)
         {
-            botClient = new TelegramBotClient("7067595343:AAFGej232xNIbzGt91dXZP-_rMgL0R8BHfQ") { Timeout = TimeSpan.FromSeconds(10) };
-            var me = botClient.GetMeAsync().Result;
-            Console.WriteLine($"Bot id: {me.Id}, Bot name: {me.FirstName} ");
-            Console.ReadKey();
+            botClient = new TelegramBotClient(TELEGRAM_TOKEN);
+            receiverOptions = new ReceiverOptions
+            {
+                AllowedUpdates = new[]
+                {
+                    UpdateType.Message,
+                    UpdateType.CallbackQuery
+                },
+                ThrowPendingUpdates = true,
+            };
+
+            using var cts = new CancellationTokenSource();
+
+            botClient.StartReceiving(BotUpdates.UpdateHandler, BotUpdates.ErrorHandler, receiverOptions, cts.Token);
+
+            var me = await botClient.GetMeAsync();
+            Console.WriteLine($"{me.Username} запущен!");
+
+            await Task.Delay(-1);
         }
     }
 }
