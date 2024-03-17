@@ -1,4 +1,5 @@
-﻿using System.Net.Security;
+﻿using ClassLib;
+using System.Net.Security;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Exceptions;

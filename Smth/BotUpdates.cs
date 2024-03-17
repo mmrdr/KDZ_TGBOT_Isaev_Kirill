@@ -8,6 +8,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Threading;
 
 namespace Smth
 {
@@ -26,113 +27,115 @@ namespace Smth
                             Console.WriteLine($"{user.FirstName} ({user.Id}) написал сообщение: {message.Text}");
 
                             var chat = message.Chat;
-
                             switch (message.Type)
                             {
                                 
                                 case MessageType.Text:
                                     {
-                                        
-                                        if (message.Text == "/start")
-                                        {                                           
-                                            await botClient.SendTextMessageAsync(
-                                                chat.Id,
-                                                "Выбери клавиатуру:\n" +
-                                                "/inline\n" +
-                                                "/reply\n");
-                                            return;
-                                        }
-
-                                        if (message.Text == "/inline")
+                                        switch (message.Text)
                                         {
-                                            
-                                            var inlineKeyboard = new InlineKeyboardMarkup(
-                                                new List<InlineKeyboardButton[]>() 
+                                            case "/start":
                                                 {
-
-
-                                        new InlineKeyboardButton[]
-                                        {
-                                            InlineKeyboardButton.WithCallbackData("Загрузить CSV файл на обработку", "button0")
-                                        },
-                                        new InlineKeyboardButton[]
-                                        {
-                                            InlineKeyboardButton.WithCallbackData("Произвести выборку по одному из полей файла", "button2"),
-                                        },
-                                        new InlineKeyboardButton[]
-                                        {
-                                            InlineKeyboardButton.WithCallbackData("Произвести фильтрацию по одному из полей файла", "button3"),
-                                        },
-                                        new InlineKeyboardButton[]
-                                        {
-                                            InlineKeyboardButton.WithCallbackData("Скачать обработанный файл в формате CSV или JSON", "button4"),
-                                        },
-                                        new InlineKeyboardButton[]
-                                        {
-                                            InlineKeyboardButton.WithCallbackData("Загрузить JSON файл на обработку", "button5"),
-                                        },
-                                                });
-
-                                            await botClient.SendTextMessageAsync(
+                                                    await botClient.SendTextMessageAsync(
                                                 chat.Id,
-                                                "Это inline клавиатура!",
-                                                replyMarkup: inlineKeyboard);
+                                                $"Приветствую Вас, {user.FirstName}\n" +
+                                                $"Я бот, созданный для обработки и работы с файлами типа CSV и JSON"); ;
+                                                    var replyKeyboard = new ReplyKeyboardMarkup(
+                                                        new List<KeyboardButton[]>()
+                                                        {
+                                                            new KeyboardButton[]
+                                                            {
+                                                                new KeyboardButton("Загрузить CSV файл на обработку"),
+                                                            },
+                                                            new KeyboardButton[]
+                                                            {
+                                                                new KeyboardButton("Загрузить JSON файл на обработку"),
+                                                            },
+                                                            new KeyboardButton[]
+                                                            {
+                                                                new KeyboardButton("Произвести фильтрацию по одному из полей файла"),
+                                                            },
+                                                            new KeyboardButton[]
+                                                            {
+                                                                new KeyboardButton("Произвести выборку по одному из полей файла"),
+                                                            },
+                                                            new KeyboardButton[]
+                                                            {
+                                                                new KeyboardButton("Скачать обработанный файл в формате CSV или JSON"),
+                                                            },
+                                                        })
+                                                        { ResizeKeyboard = true };
 
-                                            return;
-                                        }
+                                                    await botClient.SendTextMessageAsync(
+                                                        chat.Id,
+                                                        "Взаимодействовать со мной Вы можете через эти прекрасные кнопки",
+                                                        replyMarkup: replyKeyboard);
+                                                    return;
+                                                }
 
-                                        if (message.Text == "/reply")
-                                        {
-
-                                            var replyKeyboard = new ReplyKeyboardMarkup(
-                                                new List<KeyboardButton[]>()
+                                            case "Что такое магическая битва?":
                                                 {
+                                                    var inlineKeyboard = new InlineKeyboardMarkup(
+                                                    new InlineKeyboardButton[]
+                                                    {
+                                                        InlineKeyboardButton.WithUrl("Держите трейлер",
+                                                        "https://www.youtube.com/watch?v=gcgKUcJKxIs&ab_channel=TOHOanimation%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB")
+                                                    });
+                                                    await botClient.SendTextMessageAsync(
+                                                        chat.Id,
+                                                        "Держите ссылку на данное произведение",
+                                                        replyMarkup: inlineKeyboard);
+                                                    return;
+                                                }
+                                            case "Загрузить CSV файл на обработку":
+                                                {
+                                                    if (update.Message.Document == null)
+                                                    {
+                                                        await botClient.SendTextMessageAsync(chat.Id, "Скиньте Ваш CSV файл в чат");
+                                                        var fileId = update.Message.Document.FileId;
+                                                        var fileInfo = await botClient.GetFileAsync(fileId);
+                                                        var filePath = fileInfo.FilePath;
+                                                    }
+                                                    return;
+                                                }
+                                            case "Загрузить JSON файл на обработку":
+                                                {
+                                                    return;
+                                                }
+                                            case "Произвести фильтрацию по одному из полей файла":
+                                                {
+                                                    return;
+                                                }
+                                            case "Произвести выборку по одному из полей файла":
+                                                {
+                                                    return;
+                                                }
+                                            case "Скачать обработанный файл в формате CSV или JSON":
+                                                {
+                                                    return;
+                                                }
 
-
-                                        new KeyboardButton[]
-                                        {
-                                            new KeyboardButton("Загрузить CSV файл на обработку"),
-                                        },
-                                        new KeyboardButton[]
-                                        {
-                                            new KeyboardButton("Произвести выборку по одному из полей файла"),
-                                        },
-                                        new KeyboardButton[]
-                                        {
-                                            new KeyboardButton("Произвести фильтрацию по одному из полей файла"),
-                                        },
-                                        new KeyboardButton[]
-                                        {
-                                            new KeyboardButton("Скачать обработанный файл в формате CSV или JSON"),
-                                        },
-                                        new KeyboardButton[]
-                                        {
-                                            new KeyboardButton("Загрузить JSON файл на обработку"),
-                                        },
-                                                })
-                                            {ResizeKeyboard = true };
-
-                                            
-                                            await botClient.SendTextMessageAsync(
-                                                chat.Id,
-                                                "Это reply клавиатура!",
-                                                replyMarkup: replyKeyboard);
-
-                                            return;
+                                            default:
+                                                {
+                                                    await botClient.SendTextMessageAsync(
+                                                        chat.Id,
+                                                        "Я не chatgpt, не умею общаться на любые темы!",
+                                                        replyToMessageId: message.MessageId);
+                                                    return;
+                                                }
                                         }
-
-                                        return;
                                     }
-                                
+
                                 default:
                                     {
                                         await botClient.SendTextMessageAsync(
                                             chat.Id,
-                                            "Используй только текст!");
+                                            "Используй только текст!",
+                                            replyToMessageId: message.MessageId);
                                         return;
                                     }
                             }
-                        }
+                        }            
                 }
             }
             catch (Exception ex)
