@@ -1,12 +1,4 @@
-﻿using Smth;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -14,23 +6,21 @@ namespace ClassLib
 {
     public class CSVProcessing
     {
-        internal static string dataPath = "";
-
         internal static char csvSeparator = ';';
 
         internal static bool fileCorr;
 
-        internal static int NumOfFields = 8;
+        internal static int NumOfFields = 7;
 
-        internal static string? Title;
+        internal static string Title;
 
-        internal static string? SecondLine;
+        internal static string Second;
 
         internal static int Count;
 
         internal static List<AeroexpressTable> SelectedAeroexpressTableCsv;
 
-        private static bool CheckFileData(string[] records, int length)
+        private static bool CheckFileData(List<string> records, int length)
         {
             for (int i = 0; i < length; i++)
             {
@@ -59,23 +49,25 @@ namespace ClassLib
         {
             int count = 0;
             Count = count;
-            using (StreamReader file = new StreamReader(BotUpdates.lastCsvDownload))
+            using (StreamReader file = new StreamReader(HelpingMethods.filePath))
             {
                 string? line = file.ReadLine();
-                string[] title = line.Split(csvSeparator);
+                List<string> title = line.Split(csvSeparator).ToList();
+                title.RemoveAt(title.Count-1);
                 if (line == null)
                 {
                     return false;
                 }
-                if (title.Length != NumOfFields)
+                if (title.Count != NumOfFields)
                 {
                     return false;
                 }
                 line = file.ReadLine();
                 while ((line = file.ReadLine()) != null)
                 {
-                    string[] record = line.Split(csvSeparator);
-                    if (NumOfFields != record.Length || !CheckFileData(record, NumOfFields))
+                    List<string> record = line.Split(csvSeparator).ToList();
+                    record.RemoveAt(record.Count-1);
+                    if (NumOfFields != record.Count || !CheckFileData(record, NumOfFields))
                     {
                         return false;
                     }
@@ -85,7 +77,13 @@ namespace ClassLib
             }
         }
 
-        internal static AeroexpressTable[] Read(Stream stream)
+        internal static string CheckKovichka(string line)
+        {
+            string answer = new string(line.Where(sym => sym != '\"' && sym != ';').ToArray());
+            return answer;
+        }
+
+        internal static AeroexpressTable[] Read()
         {
             fileCorr = true;
             if (!CheckFileCor())
@@ -94,12 +92,12 @@ namespace ClassLib
                 fileCorr = false;
                 return new AeroexpressTable[0];
             }
-            using (StreamReader file = new StreamReader(stream))
+            using (StreamReader file = new StreamReader(HelpingMethods.filePath))
             {
                 string? line = file.ReadLine();
                 Title = line;
                 line = file.ReadLine();
-                SecondLine = line;
+                Second = line;
                 string[] records = new string[Count];
                 string[] finalLines = new string[Count];
                 var temporaryAeroexpressTableCsv = new AeroexpressTable[Count];
@@ -110,44 +108,43 @@ namespace ClassLib
 
                     records = line.Split(csvSeparator);
 
-                    temporaryAeroexpressTableCsv[iterCount++] = new AeroexpressTable(records[0],
-                        records[1],
-                        records[2],
-                        records[3],
-                        records[4],
-                        records[5],
-                        records[6]);
+                    temporaryAeroexpressTableCsv[iterCount++] = new AeroexpressTable(CheckKovichka(records[0]),
+                        CheckKovichka(records[1]),
+                        CheckKovichka(records[2]),
+                        CheckKovichka(records[3]),
+                        CheckKovichka(records[4]),
+                        CheckKovichka(records[5]),
+                        CheckKovichka(records[6]));
                 }
                 HelpingMethods.currentAeroexpressTable = temporaryAeroexpressTableCsv.ToList();
                 return temporaryAeroexpressTableCsv;
             }
         }
 
-        
-        internal static Stream Write()
+        internal static string Write()
         {
-            var writePath = dataPath + $"(edited).csv";
-            Stream stream = System.IO.File.Create(writePath);
-            using (StreamWriter writer = new StreamWriter(stream))
+            var writePath = HelpingMethods.filePath.Replace(".csv", "").Replace(".json", "") + $"(edited({HelpingMethods.numberOfFile})).csv";
+            using (StreamWriter writer = new StreamWriter(writePath))
             {
+                writer.WriteLine(Title); writer.WriteLine(Second);
                 foreach (var table in HelpingMethods.currentAeroexpressTable)
                 {
                     writer.WriteLine(table.ToString());
                 }
+                return writePath;
             }
-            stream.Close();
-            return new FileStream(writePath, FileMode.Open);
         }
 
-        internal static async Task<Stream> DownloadFile(ITelegramBotClient botClient, Update update)
+        internal static async Task<string> DownloadFile(ITelegramBotClient botClient, Update update)
         {
             var fileId = update.Message.Document.FileId;
-            var path = dataPath + $"\\LastUserInput.csv";
+            var path = HelpingMethods.filePath + $"\\LastUserInput.csv";
 
             Stream fileStream = System.IO.File.Create(path);
             await botClient.GetInfoAndDownloadFileAsync(fileId, fileStream);
             fileStream.Close();
-            return new FileStream(path, FileMode.Open);
+            HelpingMethods.filePath = path;
+            return path;
         }
 
         internal static async Task UploadFile(ITelegramBotClient botClient, Update update, Stream stream)
@@ -172,8 +169,39 @@ namespace ClassLib
                 replyMarkup: replyKeyboard);
         }
 
+        internal static void StationStartSelectionCsv()
+        {
+            string? selectThisField;
+            while (true)
+            {
+                Console.Write("Введите значение для выборки: ");
+                selectThisField = Console.ReadLine();
+                if (string.IsNullOrEmpty(selectThisField))
+                {
+                    Console.WriteLine("Вы ввели пустое значение");
+                    Console.Write("Введите значение для выборки: ");
+                    selectThisField = Console.ReadLine();
+                }
+                break;
+            }
+            SelectedAeroexpressTableCsv = new List<AeroexpressTable>();
+            int count = 0;
+            foreach (var elem in HelpingMethods.currentAeroexpressTable)
+            {
+                if (elem.StationStart[1..^1] == selectThisField)
+                {
+                    SelectedAeroexpressTableCsv[count++] = elem;
+                }
+            }
+            if (count == 0)
+            {
+                Console.WriteLine("По этому значению нет ничего в расписании");
+                return;
+            }
+            HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
+        }
 
-        internal static void StationEndSelection()
+        internal static void StationEndSelectionCsv()
         {
             string? selectThisField;
             while (true)
@@ -205,7 +233,7 @@ namespace ClassLib
             HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
         }
 
-        internal static void StationStartAndEndSelection()
+        internal static void StationStartAndEndSelectionCsv()
         {
             string? selectThisField;
             while (true)
@@ -237,7 +265,7 @@ namespace ClassLib
             HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
         }
 
-        internal static void SortTimeStart()
+        internal static void SortTimeStartCsv()
         {
             AeroexpressTable[] tables = new AeroexpressTable[HelpingMethods.currentAeroexpressTable.Count];
             HelpingMethods.currentAeroexpressTable.CopyTo(tables, 0);
@@ -245,7 +273,7 @@ namespace ClassLib
             HelpingMethods.currentAeroexpressTable = tables.ToList();
         }
 
-        internal static void SortTimeEnd()
+        internal static void SortTimeEndCsv()
         {
             AeroexpressTable[] tables = new AeroexpressTable[HelpingMethods.currentAeroexpressTable.Count];
             HelpingMethods.currentAeroexpressTable.CopyTo(tables, 0);

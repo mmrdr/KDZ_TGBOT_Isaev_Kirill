@@ -1,6 +1,9 @@
-﻿using Smth;
+﻿using Microsoft.VisualBasic;
+using Smth;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -9,6 +12,10 @@ namespace ClassLib
     public partial class HelpingMethods
     {
         internal static List<AeroexpressTable> currentAeroexpressTable;
+
+        public static int numberOfFile;
+
+        internal static string filePath;
 
         /// <summary>
         /// Check for correctness and return user's input.
@@ -30,15 +37,15 @@ namespace ClassLib
         internal static void GetPathForFile()
         {
             Process process = Process.GetCurrentProcess();
-            CSVProcessing.dataPath = process.MainModule.FileName;
-            CSVProcessing.dataPath = Path.GetDirectoryName(CSVProcessing.dataPath);
-            CSVProcessing.dataPath = Path.GetDirectoryName(CSVProcessing.dataPath);
-            CSVProcessing.dataPath = Path.GetDirectoryName(CSVProcessing.dataPath);
-            CSVProcessing.dataPath = Path.GetDirectoryName(CSVProcessing.dataPath);
-            CSVProcessing.dataPath += "\\Data";
-            if (!Directory.Exists(CSVProcessing.dataPath))
+            filePath = process.MainModule.FileName;
+            filePath = Path.GetDirectoryName(filePath);
+            filePath = Path.GetDirectoryName(filePath);
+            filePath = Path.GetDirectoryName(filePath);
+            filePath = Path.GetDirectoryName(filePath);
+            filePath += "\\Data";
+            if (!Directory.Exists(filePath))
             {
-                Directory.CreateDirectory(CSVProcessing.dataPath);
+                Directory.CreateDirectory(filePath);
             }
         }
 
@@ -49,20 +56,45 @@ namespace ClassLib
 
             if (fileName.EndsWith(".csv"))
             {
-                BotUpdates.lastCsvDownload = await CSVProcessing.DownloadFile(BotUpdates.botClient, update);
-                var temporaryTable = CSVProcessing.Read(BotUpdates.lastCsvDownload);
-                BotUpdates.lastCsvUpload = CSVProcessing.Write();
+                var path = await CSVProcessing.DownloadFile(BotUpdates.botClient, update);
+                var temporaryTableCsv = CSVProcessing.Read();
             }
             else if (fileName.EndsWith(".json"))
             {
-                //BotUpdates.lastJsonDownload = await
-                //var temporaryTable = 
-                //BotUpdates.lastJsonUpload = await
+                var path = await CSVProcessing.DownloadFile(BotUpdates.botClient, update);
+                var temporaryTableJson = JSONProcessing.Read(filePath);
             }
             else
             {
                 await BotUpdates.botClient.SendTextMessageAsync(update.Message.Chat.Id, "Некорректное расширение файла");
             }
+        }
+
+        internal static async Task UploadCsvFile(ITelegramBotClient botClient, Update update)
+        {
+            var path = CSVProcessing.Write();
+            Stream stream = System.IO.File.OpenRead(path);
+            Message message = await botClient.SendDocumentAsync(update.Message.Chat.Id, InputFile.FromStream(stream, $"aeroexpress(edited).csv"));
+        }
+
+        internal static async Task UploadJsonFile(ITelegramBotClient botClient, Update update)
+        {
+            var path = JSONProcessing.Write();
+            Stream stream = System.IO.File.OpenRead(path);
+            Message message = await botClient.SendDocumentAsync(update.Message.Chat.Id, InputFile.FromStream(stream, $"aeroexpress(edited).json"));
+        }
+
+        internal static AeroexpressTable ConvertToAeroexpress(string title)
+        {
+            string[] table = title.Split(CSVProcessing.csvSeparator);
+            AeroexpressTable aeroexpressTable = new AeroexpressTable(CSVProcessing.CheckKovichka(table[0]),
+                CSVProcessing.CheckKovichka(table[1]),
+                CSVProcessing.CheckKovichka(table[2]),
+                CSVProcessing.CheckKovichka(table[3]),
+                CSVProcessing.CheckKovichka(table[4]),
+                CSVProcessing.CheckKovichka(table[5]),
+                CSVProcessing.CheckKovichka(table[6]));
+            return aeroexpressTable;
         }
     }
 }

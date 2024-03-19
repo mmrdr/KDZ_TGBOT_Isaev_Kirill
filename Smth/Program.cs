@@ -14,6 +14,7 @@ namespace Smth
     {
         static async Task Main(string[] args)
         {
+            HelpingMethods.numberOfFile = 0;
             BotUpdates.botClient = new TelegramBotClient(BotUpdates.TELEGRAM_TOKEN);
             BotUpdates.receiverOptions = new ReceiverOptions
             {

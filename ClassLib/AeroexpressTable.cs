@@ -61,7 +61,9 @@ namespace ClassLib
         // Переопределяем метод ToString(), чтобы успешно записывать информацию в новый файл.
         public override string ToString()
         {
-            return string.Join(CSVProcessing.csvSeparator, id, stationStart, line, timeStart, stationEnd, timeEnd, globalId);
+            string result = $"\"{id}\";" + $"\"{stationStart}\";" + $"\"{line}\";" + $"\"{timeStart}\";"
+            + $"\"{stationEnd}\";" + $"\"{timeEnd}\";" + $"\"{globalId}\";";
+            return result;
         }
     }
 }

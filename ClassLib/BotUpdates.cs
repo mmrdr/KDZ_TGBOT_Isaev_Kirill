@@ -40,7 +40,7 @@ namespace Smth
                             await HelpingMethods.DownloadData(update);
                             if (CSVProcessing.fileCorr)
                             {
-                                await botClient.SendTextMessageAsync(message.Chat.Id, "Данные корректны!Загружены");
+                                await botClient.SendTextMessageAsync(message.Chat.Id, "Данные корректны! Загружены");
                                 var replyKeyboard = new ReplyKeyboardMarkup(new List<KeyboardButton[]>
                                 {
                                     new KeyboardButton[]
@@ -90,6 +90,7 @@ namespace Smth
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
                     }
+
                 }
                 else if(message.Text == "Выборка по StationStart и StationEnd")
                 {
@@ -106,7 +107,7 @@ namespace Smth
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
                     }
-                    else CSVProcessing.SortTimeStart();
+                    else CSVProcessing.SortTimeStartCsv();
                 }
                 else if (message.Text == "Сортировка по TimeEnd(в порядке увеличения времени)")
                 {
@@ -115,7 +116,7 @@ namespace Smth
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
                     }
-                    else CSVProcessing.SortTimeEnd();
+                    else CSVProcessing.SortTimeEndCsv();
                 }
                 else if (message.Text == "Выгрузить файл в формате CSV")
                 {
@@ -124,7 +125,11 @@ namespace Smth
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
                     }
-                    //else CSVProcessing.UploadFile(botClient, update);
+                    else
+                    {
+                        HelpingMethods.numberOfFile++;
+                        await HelpingMethods.UploadCsvFile(botClient, update);
+                    }
                 }
                 else if (message.Text == "Выгрузить файл в формате JSON")
                 {
@@ -132,6 +137,11 @@ namespace Smth
                     {
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
+                    }
+                    else
+                    {
+                        HelpingMethods.numberOfFile++;
+                        await HelpingMethods.UploadJsonFile(botClient, update);
                     }
                 }
                 else
@@ -141,7 +151,7 @@ namespace Smth
                         await HelpingMethods.DownloadData(update);
                         if (CSVProcessing.fileCorr)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat.Id, "Данные корректны!Загружены");
+                            await botClient.SendTextMessageAsync(message.Chat.Id, "Данные корректны! Загружены");
                             var replyKeyboard = new ReplyKeyboardMarkup(new List<KeyboardButton[]>
                             {
                                 new KeyboardButton[]
