@@ -17,6 +17,14 @@ namespace ClassLib
 
         internal static string filePath;
 
+        internal static bool IsSelecting;
+
+        internal static string curFieldToSelect;
+
+        internal static string curValueToSelect;
+
+        internal static string[] curValuesToSelect;
+
         /// <summary>
         /// Check for correctness and return user's input.
         /// </summary>

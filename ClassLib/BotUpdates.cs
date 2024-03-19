@@ -30,7 +30,39 @@ namespace Smth
                 {
                     await botClient.SendTextMessageAsync(message.Chat.Id, "Привет! Для начала - прикрепи файл!\n" +
                         "Доступные расширения: .csv, .json");
-                }               
+                }
+                else if (HelpingMethods.IsSelecting)
+                {
+                    if (message.Type != MessageType.Text)
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "Некорректное значение для выборки, повторите попытку");
+                        return;
+                    }
+                    else
+                    {
+                        if (HelpingMethods.curFieldToSelect == "StationStart")
+                        {
+                            CSVProcessing.TakeValueToSelect(message.Text);
+                            HelpingMethods.IsSelecting = false;
+                            CSVProcessing.StationSelection(HelpingMethods.curFieldToSelect, HelpingMethods.curValueToSelect);
+                            Answer(update);
+                        }
+                        if (HelpingMethods.curFieldToSelect == "StationEnd")
+                        {
+                            CSVProcessing.TakeValueToSelect(message.Text);
+                            HelpingMethods.IsSelecting = false;
+                            CSVProcessing.StationSelection(HelpingMethods.curFieldToSelect, HelpingMethods.curValueToSelect);
+                            Answer(update);
+                        }
+                        if (HelpingMethods.curFieldToSelect == "StationStart,StationEnd")
+                        {
+                            CSVProcessing.TakeValuesToSelect(message.Text);
+                            HelpingMethods.IsSelecting = false;
+                            CSVProcessing.BothStationSelect(HelpingMethods.curValuesToSelect);
+                            Answer(update);
+                        }
+                    }
+                }
                 else if (HelpingMethods.currentAeroexpressTable == null)
                 {
                     if (message.Type == MessageType.Document)
@@ -41,27 +73,7 @@ namespace Smth
                             if (CSVProcessing.fileCorr)
                             {
                                 await botClient.SendTextMessageAsync(message.Chat.Id, "Данные корректны! Загружены");
-                                var replyKeyboard = new ReplyKeyboardMarkup(new List<KeyboardButton[]>
-                                {
-                                    new KeyboardButton[]
-                                    {
-                                        new KeyboardButton("Выборка по StationStart"),
-                                        new KeyboardButton("Выборка по StationEnd"),
-                                        new KeyboardButton("Выборка по StationStart и StationEnd")
-                                    },
-                                    new KeyboardButton[]
-                                    {
-                                        new KeyboardButton("Сортировка по TimeStart(в порядке увеличения времени)"),
-                                        new KeyboardButton("Сортировка по TimeEnd(в порядке увеличения времени)")
-                                    },
-                                    new KeyboardButton[]
-                                    {
-                                        new KeyboardButton("Выгрузить файл в формате CSV"),
-                                        new KeyboardButton("Выгрузить файл в формате JSON"),
-                                    }
-                                })
-                                { ResizeKeyboard = true };
-                                await botClient.SendTextMessageAsync(message.Chat.Id, "Выберите нужную опцию", replyMarkup: replyKeyboard);
+                                await botClient.SendTextMessageAsync(message.Chat.Id, "Выберите нужную опцию", replyMarkup: HelpingMethods.ShowButtons());
                             }
                             else await botClient.SendTextMessageAsync(message.Chat.Id, "Некорректные данные");
                         }
@@ -82,6 +94,13 @@ namespace Smth
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
                     }
+                    else
+                    {
+                        CSVProcessing.TakeFieldToSelect(message.Text);
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "Введите значение для выборки\n" +
+                            "Параметр должен точно совпадать с параметром из файла");
+                        HelpingMethods.IsSelecting = true;
+                    }
                 }
                 else if(message.Text == "Выборка по StationEnd")
                 {
@@ -90,15 +109,30 @@ namespace Smth
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
                     }
-
+                    else
+                    {
+                        CSVProcessing.TakeFieldToSelect(message.Text);
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "Введите значение для выборки\n" +
+                            "Параметр должен точно совпадать с параметром из файла");
+                        HelpingMethods.IsSelecting = true;
+                    }
                 }
-                else if(message.Text == "Выборка по StationStart и StationEnd")
+                else if(message.Text == "Выборка по StationStart,StationEnd")
                 {
                     if (HelpingMethods.currentAeroexpressTable == null)
                     {
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
                     }
+                    else
+                    {
+                        CSVProcessing.TakeFieldToSelect(message.Text);
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "Введите значение для выборки\n" +
+                             "Параметр должен точно совпадать с параметром из файла\n" +
+                             "[значение;значение]");
+                        HelpingMethods.IsSelecting = true;
+                    }
+                       
                 }
                 else if (message.Text == "Сортировка по TimeStart(в порядке увеличения времени)")
                 {
@@ -107,7 +141,11 @@ namespace Smth
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
                     }
-                    else CSVProcessing.SortTimeStartCsv();
+                    else
+                    {
+                        CSVProcessing.SortTimeStart();
+                        Answer(update);
+                    }
                 }
                 else if (message.Text == "Сортировка по TimeEnd(в порядке увеличения времени)")
                 {
@@ -116,7 +154,11 @@ namespace Smth
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Для начала - прикрепи файл!");
                         return;
                     }
-                    else CSVProcessing.SortTimeEndCsv();
+                    else 
+                    {
+                        CSVProcessing.SortTimeEnd();
+                        Answer(update);
+                    } 
                 }
                 else if (message.Text == "Выгрузить файл в формате CSV")
                 {
@@ -152,27 +194,8 @@ namespace Smth
                         if (CSVProcessing.fileCorr)
                         {
                             await botClient.SendTextMessageAsync(message.Chat.Id, "Данные корректны! Загружены");
-                            var replyKeyboard = new ReplyKeyboardMarkup(new List<KeyboardButton[]>
-                            {
-                                new KeyboardButton[]
-                                {
-                                new KeyboardButton("Выборка по StationStart"),
-                                new KeyboardButton("Выборка по StationEnd"),
-                                new KeyboardButton("Выборка по StationStart и StationEnd")
-                                },
-                                new KeyboardButton[]
-                                {
-                                    new KeyboardButton("Сортировка по TimeStart(в порядке увеличения времени)"),
-                                    new KeyboardButton("Сортировка по TimeEnd(в порядке увеличения времени)")
-                                },
-                                new KeyboardButton[]
-                                {
-                                    new KeyboardButton("Выгрузить файл в формате CSV"),
-                                    new KeyboardButton("Выгрузить файл в формате JSON"),
-                                }
-                            })
-                            { ResizeKeyboard = true };
-                            await botClient.SendTextMessageAsync(message.Chat.Id, "Выберите нужную опцию", replyMarkup: replyKeyboard);
+
+                            await botClient.SendTextMessageAsync(message.Chat.Id, "Выберите нужную опцию", replyMarkup: HelpingMethods.ShowButtons());
                         }
                         else await botClient.SendTextMessageAsync(message.Chat.Id, "Некорректные данные");
                         return;
@@ -192,5 +215,13 @@ namespace Smth
             return Task.CompletedTask;
         }
 
+        private static async void Answer(Update update)
+        {
+            if (HelpingMethods.currentAeroexpressTable.Count == 0)
+                await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Не нашлось значения.\n" +
+                    "Что дальше?", replyMarkup: HelpingMethods.ShowButtons());
+            else await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Успех, проведена выборка.\n" +
+                "Что дальше?", replyMarkup: HelpingMethods.ShowButtons());
+        }
     }
 }

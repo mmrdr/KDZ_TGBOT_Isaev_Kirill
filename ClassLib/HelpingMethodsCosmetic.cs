@@ -1,4 +1,6 @@
-﻿namespace ClassLib
+﻿using Telegram.Bot.Types.ReplyMarkups;
+
+namespace ClassLib
 {
     public partial class HelpingMethods
     {
@@ -12,6 +14,31 @@
             Console.ForegroundColor = color;
             Console.WriteLine(text);
             Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        internal static ReplyKeyboardMarkup ShowButtons()
+        {
+            var replyKeyboard = new ReplyKeyboardMarkup(new List<KeyboardButton[]>
+            {
+                new KeyboardButton[]
+                {
+                    new KeyboardButton("Выборка по StationStart"),
+                    new KeyboardButton("Выборка по StationEnd"),
+                    new KeyboardButton("Выборка по StationStart,StationEnd")
+                },
+                new KeyboardButton[]
+                {
+                    new KeyboardButton("Сортировка по TimeStart(в порядке увеличения времени)"),
+                    new KeyboardButton("Сортировка по TimeEnd(в порядке увеличения времени)")
+                },
+                new KeyboardButton[]
+                {
+                    new KeyboardButton("Выгрузить файл в формате CSV"),
+                    new KeyboardButton("Выгрузить файл в формате JSON"),
+                }
+            })
+            { ResizeKeyboard = true };
+            return replyKeyboard;
         }
     }
 }

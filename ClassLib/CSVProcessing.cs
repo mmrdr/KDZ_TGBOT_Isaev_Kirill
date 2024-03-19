@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using Newtonsoft.Json.Linq;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -169,103 +170,50 @@ namespace ClassLib
                 replyMarkup: replyKeyboard);
         }
 
-        internal static void StationStartSelectionCsv()
+        internal static void TakeFieldToSelect(string message)
         {
-            string? selectThisField;
-            while (true)
+            var answer = message.Split(" ");
+            HelpingMethods.curFieldToSelect = answer[answer.Length-1];
+        }
+
+        internal static void TakeValueToSelect(string message)
+        {
+            HelpingMethods.curValueToSelect = message;
+        }
+
+        internal static void TakeValuesToSelect(string message)
+        {
+            var answer = message.Split(';');
+            HelpingMethods.curValuesToSelect = new string[2];
+            HelpingMethods.curValuesToSelect[0] = answer[0];
+            HelpingMethods.curValuesToSelect[1] = answer[1];
+        }
+
+
+        internal static void StationSelection(string fieldToSelect, string value)
+        {
+            SelectedAeroexpressTableCsv = new List<AeroexpressTable>(HelpingMethods.currentAeroexpressTable);
+
+            if (fieldToSelect.StartsWith("StationStart"))
             {
-                Console.Write("Введите значение для выборки: ");
-                selectThisField = Console.ReadLine();
-                if (string.IsNullOrEmpty(selectThisField))
-                {
-                    Console.WriteLine("Вы ввели пустое значение");
-                    Console.Write("Введите значение для выборки: ");
-                    selectThisField = Console.ReadLine();
-                }
-                break;
+                SelectedAeroexpressTableCsv = SelectedAeroexpressTableCsv.Where(x => x.StationStart == value).ToList();
             }
-            SelectedAeroexpressTableCsv = new List<AeroexpressTable>();
-            int count = 0;
-            foreach (var elem in HelpingMethods.currentAeroexpressTable)
+            else if (fieldToSelect.StartsWith("StationEnd"))
             {
-                if (elem.StationStart[1..^1] == selectThisField)
-                {
-                    SelectedAeroexpressTableCsv[count++] = elem;
-                }
+                SelectedAeroexpressTableCsv = SelectedAeroexpressTableCsv.Where(x => x.StationEnd == value).ToList();
             }
-            if (count == 0)
-            {
-                Console.WriteLine("По этому значению нет ничего в расписании");
-                return;
-            }
+
             HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
         }
 
-        internal static void StationEndSelectionCsv()
+        internal static void BothStationSelect(string[] values)
         {
-            string? selectThisField;
-            while (true)
-            {
-                Console.Write("Введите значение для выборки: ");
-                selectThisField = Console.ReadLine();
-                if (string.IsNullOrEmpty(selectThisField))
-                {
-                    Console.WriteLine("Вы ввели пустое значение");
-                    Console.Write("Введите значение для выборки: ");
-                    selectThisField = Console.ReadLine();
-                }
-                break;
-            }
-            SelectedAeroexpressTableCsv = new List<AeroexpressTable>();
-            int count = 0;
-            foreach (var elem in HelpingMethods.currentAeroexpressTable)
-            {
-                if (elem.StationEnd[1..^1] == selectThisField)
-                {
-                    SelectedAeroexpressTableCsv[count++] = elem;
-                }
-            }
-            if (count == 0)
-            {
-                Console.WriteLine("По этому значению нет ничего в расписании");
-                return;
-            }
+            SelectedAeroexpressTableCsv = new List<AeroexpressTable>(HelpingMethods.currentAeroexpressTable);
+            SelectedAeroexpressTableCsv = SelectedAeroexpressTableCsv.Where(x => x.StationStart == values[0] && x.StationEnd == values[1]).ToList();
             HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
         }
 
-        internal static void StationStartAndEndSelectionCsv()
-        {
-            string? selectThisField;
-            while (true)
-            {
-                Console.Write("Введите значение для выборки: ");
-                selectThisField = Console.ReadLine();
-                if (string.IsNullOrEmpty(selectThisField))
-                {
-                    Console.WriteLine("Вы ввели пустое значение");
-                    Console.Write("Введите значение для выборки: ");
-                    selectThisField = Console.ReadLine();
-                }
-                break;
-            }
-            SelectedAeroexpressTableCsv = new List<AeroexpressTable>();
-            int count = 0;
-            foreach (var elem in HelpingMethods.currentAeroexpressTable)
-            {
-                if (elem.StationEnd[1..^1] == selectThisField || elem.StationStart[1..^1] == selectThisField)
-                {
-                    SelectedAeroexpressTableCsv[count++] = elem;
-                }
-            }
-            if (count == 0)
-            {
-                Console.WriteLine("По этому значению нет ничего в расписании");
-                return;
-            }
-            HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
-        }
-
-        internal static void SortTimeStartCsv()
+        internal static void SortTimeStart()
         {
             AeroexpressTable[] tables = new AeroexpressTable[HelpingMethods.currentAeroexpressTable.Count];
             HelpingMethods.currentAeroexpressTable.CopyTo(tables, 0);
@@ -273,7 +221,7 @@ namespace ClassLib
             HelpingMethods.currentAeroexpressTable = tables.ToList();
         }
 
-        internal static void SortTimeEndCsv()
+        internal static void SortTimeEnd()
         {
             AeroexpressTable[] tables = new AeroexpressTable[HelpingMethods.currentAeroexpressTable.Count];
             HelpingMethods.currentAeroexpressTable.CopyTo(tables, 0);
