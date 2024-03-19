@@ -37,7 +37,7 @@ namespace ClassLib
         [JsonPropertyName("TimeEnd")]
         public string TimeEnd { get { return timeEnd; } set { timeEnd = value; } }
 
-        [JsonPropertyName("global_id")]
+        [JsonPropertyName("globalId")]
         public string GlobalId { get { return globalId; } set { globalId = value; } }
 
 

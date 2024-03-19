@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
+
 
 namespace ClassLib
 {
@@ -33,7 +29,7 @@ namespace ClassLib
         {
             string json = File.ReadAllText(filePath);
             var heroesFromJson = JsonSerializer.Deserialize<List<AeroexpressTable>>(json);
-            HelpingMethods.currentAeroexpressTableJson = heroesFromJson;
+            HelpingMethods.currentAeroexpressTable = heroesFromJson;
             return heroesFromJson;
         }
 
@@ -44,23 +40,23 @@ namespace ClassLib
         /// <returns>Sorted list(by any choosen field).</returns>
         public static List<AeroexpressTable> Sorting()
         {
-            if (HelpingMethods.currentAeroexpressTableJson == null)
+            if (HelpingMethods.currentAeroexpressTable == null)
             {
                 HelpingMethods.PrintWithColor("No data error, try again", ConsoleColor.Red);
                 return new List<AeroexpressTable>(0);
             }
             //HelpingMethods.WelcomingForSorting(); Наверное не нужно раз у нас интерфейс пользователя именно в тг боте.
-            var tempSelectedUsers = new AeroexpressTable[HelpingMethods.currentAeroexpressTableJson.Count()];
+            var tempSelectedUsers = new AeroexpressTable[HelpingMethods.currentAeroexpressTable.Count()];
             switch (HelpingMethods.ItemForSorting()) // Это будет взаимодействовать в зависимости от кнопки пользователя в боте.
             {
                 case ConsoleKey.D1:
                     Console.Clear();
-                    HelpingMethods.currentAeroexpressTableJson.CopyTo(tempSelectedUsers, 0);
+                    HelpingMethods.currentAeroexpressTable.CopyTo(tempSelectedUsers, 0);
                     tempSelectedUsers = tempSelectedUsers.OrderBy(x => x.TimeStart).ToArray();
                     break;
                 case ConsoleKey.D2:
                     Console.Clear();
-                    HelpingMethods.currentAeroexpressTableJson.CopyTo(tempSelectedUsers, 0);
+                    HelpingMethods.currentAeroexpressTable.CopyTo(tempSelectedUsers, 0);
                     tempSelectedUsers = tempSelectedUsers.OrderBy(x => x.TimeEnd).ToArray();
                     break;
             }
@@ -69,13 +65,9 @@ namespace ClassLib
             {
                 SelectedAeroexpressTableJson.Add(user);
             }
-            HelpingMethods.currentAeroexpressTableJson = SelectedAeroexpressTableJson;
+            HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableJson;
             return SelectedAeroexpressTableJson;
         }
-
-
-
-
 
         public string ToJson()
         {

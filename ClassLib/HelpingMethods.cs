@@ -8,12 +8,7 @@ namespace ClassLib
 {
     public partial class HelpingMethods
     {
-        internal static List<AeroexpressTable> currentAeroexpressTableCsv;
-
-        internal static List<AeroexpressTable> currentAeroexpressTableJson;
-
-        internal static string filePath;
-
+        internal static List<AeroexpressTable> currentAeroexpressTable;
 
         /// <summary>
         /// Check for correctness and return user's input.
@@ -32,21 +27,19 @@ namespace ClassLib
             return key;
         }
 
-        internal static string GetPathForFile()
+        internal static void GetPathForFile()
         {
             Process process = Process.GetCurrentProcess();
-            string path = process.MainModule.FileName;
-            path = Path.GetDirectoryName(path);
-            path = Path.GetDirectoryName(path);
-            path = Path.GetDirectoryName(path);
-            path = Path.GetDirectoryName(path);
-            path += "\\Data";
-            if (!Directory.Exists(path))
+            CSVProcessing.dataPath = process.MainModule.FileName;
+            CSVProcessing.dataPath = Path.GetDirectoryName(CSVProcessing.dataPath);
+            CSVProcessing.dataPath = Path.GetDirectoryName(CSVProcessing.dataPath);
+            CSVProcessing.dataPath = Path.GetDirectoryName(CSVProcessing.dataPath);
+            CSVProcessing.dataPath = Path.GetDirectoryName(CSVProcessing.dataPath);
+            CSVProcessing.dataPath += "\\Data";
+            if (!Directory.Exists(CSVProcessing.dataPath))
             {
-                Directory.CreateDirectory(path);
+                Directory.CreateDirectory(CSVProcessing.dataPath);
             }
-            filePath = path;
-            return path;
         }
 
         internal static async Task DownloadData(Update update)
@@ -56,14 +49,15 @@ namespace ClassLib
 
             if (fileName.EndsWith(".csv"))
             {
-                var path = await CSVProcessing.DownloadFile(BotUpdates.botClient, update, filePath);
-                filePath = path;
-                var temporaryTable = CSVProcessing.Read().ToList();
-                await BotUpdates.botClient.SendTextMessageAsync(update.Message.Chat.Id, "Данные успешно загружены!");
+                BotUpdates.lastCsvDownload = await CSVProcessing.DownloadFile(BotUpdates.botClient, update);
+                var temporaryTable = CSVProcessing.Read(BotUpdates.lastCsvDownload);
+                BotUpdates.lastCsvUpload = CSVProcessing.Write();
             }
             else if (fileName.EndsWith(".json"))
             {
-
+                //BotUpdates.lastJsonDownload = await
+                //var temporaryTable = 
+                //BotUpdates.lastJsonUpload = await
             }
             else
             {
