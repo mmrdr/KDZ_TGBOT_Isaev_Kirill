@@ -7,9 +7,6 @@ namespace ClassLib
 {
     public class JSONProcessing
     {
-
-        public static List<AeroexpressTable> SelectedAeroexpressTableJson;
-
         /// <summary>
         /// This method serialize data to some file.
         /// </summary>
@@ -17,13 +14,14 @@ namespace ClassLib
         /// <param name="filePath">This path refer to file, that will take data from method.</param>
         public static Stream Write()
         {
-            var title = HelpingMethods.ConvertToAeroexpress(CSVProcessing.Title);
-            var secondTitle = HelpingMethods.ConvertToAeroexpress(CSVProcessing.Second);
+            var title = HelpingMethods.Title;
+            var secondTitle = HelpingMethods.SecondTitle;
             HelpingMethods.currentAeroexpressTable.Insert(0, title);
             HelpingMethods.currentAeroexpressTable.Insert(1, secondTitle);
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             var json = JsonSerializer.Serialize(HelpingMethods.currentAeroexpressTable, jsonOptions);
-            var writePath = HelpingMethods.filePath.Replace(".json", "").Replace(".csv", "") + $"(edited({HelpingMethods.numberOfFile})).json";
+            var writePath = HelpingMethods.filePath.Replace(".json", "").Replace(".csv", "") + $"\\BeautyOutput(edited({HelpingMethods.numberOfFile})).json";
+            Console.WriteLine(writePath);
             Stream stream = File.Create(writePath);
             TextWriter oldOut = Console.Out;
             using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
@@ -45,36 +43,32 @@ namespace ClassLib
         /// <returns>List with json's data.</returns>
         public static List<AeroexpressTable> Read(Stream stream)
         {
-            AeroexpressTable title;
-            AeroexpressTable secondTitle;
-            TextReader oldIn = Console.In;
-            var json = "";
-            using (StreamReader streamReader = new StreamReader(stream))
+            try
             {
-                Console.SetIn(streamReader);
-                json = streamReader.ReadToEnd();
+                HelpingMethods.fileCorr = true;
+                AeroexpressTable title;
+                AeroexpressTable secondTitle;
+                TextReader oldIn = Console.In;
+                var json = "";
+                using (StreamReader streamReader = new StreamReader(stream))
+                {
+                    Console.SetIn(streamReader);
+                    json = streamReader.ReadToEnd();
+                }
+                var heroesFromJson = JsonSerializer.Deserialize<List<AeroexpressTable>>(json);
+                title = heroesFromJson[0];
+                secondTitle = heroesFromJson[1];
+                if (title.ToString() == HelpingMethods.Title.ToString()) { heroesFromJson.RemoveAt(0); }
+                if (secondTitle.ToString() == HelpingMethods.SecondTitle.ToString()) { heroesFromJson.RemoveAt(0); }
+                HelpingMethods.currentAeroexpressTable = heroesFromJson;
+                return heroesFromJson;
             }
-            var heroesFromJson = JsonSerializer.Deserialize<List<AeroexpressTable>>(json);
-            HelpingMethods.currentAeroexpressTable = heroesFromJson;
-            if (HelpingMethods.currentAeroexpressTable[0] == (title = HelpingMethods.ConvertToAeroexpress(CSVProcessing.Title))) HelpingMethods.currentAeroexpressTable.RemoveAt(0);
-            if (HelpingMethods.currentAeroexpressTable[0] == (secondTitle = HelpingMethods.ConvertToAeroexpress(CSVProcessing.Title))) HelpingMethods.currentAeroexpressTable.RemoveAt(0);
-            return heroesFromJson;
-        }
-
-        internal static void SortTimeStartJson()
-        {
-            AeroexpressTable[] tables = new AeroexpressTable[HelpingMethods.currentAeroexpressTable.Count];
-            HelpingMethods.currentAeroexpressTable.CopyTo(tables, 0);
-            tables = tables.OrderBy(x => x.TimeStart).ToArray();
-            HelpingMethods.currentAeroexpressTable = tables.ToList();
-        }
-
-        internal static void SortTimeEndJson()
-        {
-            AeroexpressTable[] tables = new AeroexpressTable[HelpingMethods.currentAeroexpressTable.Count];
-            HelpingMethods.currentAeroexpressTable.CopyTo(tables, 0);
-            tables = tables.OrderBy(x => x.TimeEnd).ToArray();
-            HelpingMethods.currentAeroexpressTable = tables.ToList();
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                HelpingMethods.fileCorr = false;
+                return new List<AeroexpressTable>(0);
+            }
         }
 
         public string ToJson()

@@ -12,9 +12,6 @@ namespace Smth
 {
     public class BotUpdates
     {
-
-        internal static Stream lastCsvDownload, lastCsvUpload, lastJsonDownload, lastJsonUpload;
-
         public const string TELEGRAM_TOKEN = "7067595343:AAFGej232xNIbzGt91dXZP-_rMgL0R8BHfQ";
 
         public static ITelegramBotClient botClient;
@@ -31,6 +28,19 @@ namespace Smth
                     await botClient.SendTextMessageAsync(message.Chat.Id, "Привет! Для начала - прикрепи файл!\n" +
                         "Доступные расширения: .csv, .json");
                 }
+                else if (message.Text == "Что такое магическая битва?")
+                {
+                    var inlineKeyboard = new InlineKeyboardMarkup(
+                    new List<InlineKeyboardButton[]>()
+                    {
+                        new InlineKeyboardButton[]
+                        {
+                            InlineKeyboardButton.WithUrl("Click", "https://www.youtube.com/watch?v=5yb2N3pnztU&ab_channel=TOHOanimation%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB"),
+                        },
+                    });
+
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "Прекрасный вопрос, тут Вы найдете опенинг", replyMarkup: inlineKeyboard);
+                }
                 else if (HelpingMethods.IsSelecting)
                 {
                     if (message.Type != MessageType.Text)
@@ -42,24 +52,24 @@ namespace Smth
                     {
                         if (HelpingMethods.curFieldToSelect == "StationStart")
                         {
-                            CSVProcessing.TakeValueToSelect(message.Text);
+                            DataIteraction.TakeValueToSelect(message.Text);
                             HelpingMethods.IsSelecting = false;
-                            CSVProcessing.StationSelection(HelpingMethods.curFieldToSelect, HelpingMethods.curValueToSelect);
-                            Answer(update);
+                            DataIteraction.StationSelection(HelpingMethods.curFieldToSelect, HelpingMethods.curValueToSelect);
+                            HelpingMethods.Answer(update, botClient);
                         }
                         if (HelpingMethods.curFieldToSelect == "StationEnd")
                         {
-                            CSVProcessing.TakeValueToSelect(message.Text);
+                            DataIteraction.TakeValueToSelect(message.Text);
                             HelpingMethods.IsSelecting = false;
-                            CSVProcessing.StationSelection(HelpingMethods.curFieldToSelect, HelpingMethods.curValueToSelect);
-                            Answer(update);
+                            DataIteraction.StationSelection(HelpingMethods.curFieldToSelect, HelpingMethods.curValueToSelect);
+                            HelpingMethods.Answer(update, botClient);
                         }
                         if (HelpingMethods.curFieldToSelect == "StationStart,StationEnd")
                         {
-                            CSVProcessing.TakeValuesToSelect(message.Text);
+                            DataIteraction.TakeValuesToSelect(message.Text);
                             HelpingMethods.IsSelecting = false;
-                            CSVProcessing.BothStationSelect(HelpingMethods.curValuesToSelect);
-                            Answer(update);
+                            DataIteraction.BothStationSelect(HelpingMethods.curValuesToSelect);
+                            HelpingMethods.Answer(update, botClient);
                         }
                     }
                 }
@@ -69,8 +79,8 @@ namespace Smth
                     {
                         try
                         {
-                            await HelpingMethods.DownloadData(update);
-                            if (CSVProcessing.fileCorr)
+                            await BotIteraction.DownloadData(update);
+                            if (HelpingMethods.fileCorr)
                             {
                                 await botClient.SendTextMessageAsync(message.Chat.Id, "Данные корректны! Загружены");
                                 await botClient.SendTextMessageAsync(message.Chat.Id, "Выберите нужную опцию", replyMarkup: HelpingMethods.ShowButtons());
@@ -96,7 +106,7 @@ namespace Smth
                     }
                     else
                     {
-                        CSVProcessing.TakeFieldToSelect(message.Text);
+                        DataIteraction.TakeFieldToSelect(message.Text);
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Введите значение для выборки\n" +
                             "Параметр должен точно совпадать с параметром из файла");
                         HelpingMethods.IsSelecting = true;
@@ -111,7 +121,7 @@ namespace Smth
                     }
                     else
                     {
-                        CSVProcessing.TakeFieldToSelect(message.Text);
+                        DataIteraction.TakeFieldToSelect(message.Text);
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Введите значение для выборки\n" +
                             "Параметр должен точно совпадать с параметром из файла");
                         HelpingMethods.IsSelecting = true;
@@ -126,7 +136,7 @@ namespace Smth
                     }
                     else
                     {
-                        CSVProcessing.TakeFieldToSelect(message.Text);
+                        DataIteraction.TakeFieldToSelect(message.Text);
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Введите значение для выборки\n" +
                              "Параметр должен точно совпадать с параметром из файла\n" +
                              "[значение;значение]");
@@ -143,8 +153,8 @@ namespace Smth
                     }
                     else
                     {
-                        CSVProcessing.SortTimeStart();
-                        Answer(update);
+                        DataIteraction.SortTimeStart();
+                        HelpingMethods.Answer(update, botClient);
                     }
                 }
                 else if (message.Text == "Сортировка по TimeEnd(в порядке увеличения времени)")
@@ -156,8 +166,8 @@ namespace Smth
                     }
                     else 
                     {
-                        CSVProcessing.SortTimeEnd();
-                        Answer(update);
+                        DataIteraction.SortTimeEnd();
+                        HelpingMethods.Answer(update, botClient);
                     } 
                 }
                 else if (message.Text == "Выгрузить файл в формате CSV")
@@ -170,7 +180,7 @@ namespace Smth
                     else
                     {
                         HelpingMethods.numberOfFile++;
-                        await HelpingMethods.UploadCsvFile(botClient, update);
+                        await BotIteraction.UploadCsvFile(botClient, update);
                     }
                 }
                 else if (message.Text == "Выгрузить файл в формате JSON")
@@ -183,15 +193,16 @@ namespace Smth
                     else
                     {
                         HelpingMethods.numberOfFile++;
-                        await HelpingMethods.UploadJsonFile(botClient, update);
+                        await BotIteraction.UploadJsonFile(botClient, update);
                     }
                 }
+ 
                 else
                 {
                     if (message.Type == MessageType.Document)
                     {
-                        await HelpingMethods.DownloadData(update);
-                        if (CSVProcessing.fileCorr)
+                        await BotIteraction.DownloadData(update);
+                        if (HelpingMethods.fileCorr)
                         {
                             await botClient.SendTextMessageAsync(message.Chat.Id, "Данные корректны! Загружены");
 
@@ -213,15 +224,6 @@ namespace Smth
             };
             Console.WriteLine(errorMessage);
             return Task.CompletedTask;
-        }
-
-        private static async void Answer(Update update)
-        {
-            if (HelpingMethods.currentAeroexpressTable.Count == 0 || CSVProcessing.SelectedAeroexpressTableCsv.Count == 0)
-                await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Не нашлось значения.\n" +
-                    "Что дальше?", replyMarkup: HelpingMethods.ShowButtons());
-            else await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Успех, проведена выборка.\n" +
-                "Что дальше?", replyMarkup: HelpingMethods.ShowButtons());
         }
     }
 }

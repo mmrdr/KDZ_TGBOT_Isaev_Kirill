@@ -58,6 +58,11 @@ namespace ClassLib
             globalId = globalid;
         }
 
+        public AeroexpressTable()
+        {
+            
+        }
+
         // Переопределяем метод ToString(), чтобы успешно записывать информацию в новый файл.
         public override string ToString()
         {

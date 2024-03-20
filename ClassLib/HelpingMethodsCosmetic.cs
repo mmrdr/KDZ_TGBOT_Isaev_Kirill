@@ -16,6 +16,10 @@ namespace ClassLib
             Console.ForegroundColor = ConsoleColor.White;
         }
 
+        /// <summary>
+        /// Displays buttons in the bot.
+        /// </summary>
+        /// <returns> Keyboard.</returns>
         internal static ReplyKeyboardMarkup ShowButtons()
         {
             var replyKeyboard = new ReplyKeyboardMarkup(new List<KeyboardButton[]>
