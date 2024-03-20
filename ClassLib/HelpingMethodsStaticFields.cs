@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ClassLib
 {
     /// <summary>
-    /// Эта часть partial-класса HelpingMethods, реализует все статические поля, необходимые в различных методах из других классов.
+    /// Эта часть partial-класса HelpingMethods реализует все статические поля, необходимые в различных методах из других классов.
     /// </summary>
     public partial class HelpingMethods
     {
