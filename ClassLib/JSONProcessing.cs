@@ -14,6 +14,8 @@ namespace ClassLib
         /// <param name="filePath">This path refer to file, that will take data from method.</param>
         public static Stream Write()
         {
+            Logger.WriteLog(nameof(Write), ConstStrings.startMethod);
+
             var title = HelpingMethods.Title;
             var secondTitle = HelpingMethods.SecondTitle;
             HelpingMethods.currentAeroexpressTable.Insert(0, title);
@@ -33,6 +35,9 @@ namespace ClassLib
             stream.Close();
             HelpingMethods.currentAeroexpressTable.RemoveAt(0);
             HelpingMethods.currentAeroexpressTable.RemoveAt(0);
+
+            Logger.WriteLog(nameof(Write), ConstStrings.endMethod);
+
             return new FileStream(writePath, FileMode.Open);
         }
 
@@ -43,6 +48,8 @@ namespace ClassLib
         /// <returns>List with json's data.</returns>
         public static List<AeroexpressTable> Read(Stream stream)
         {
+            Logger.WriteLog(nameof(Read), ConstStrings.startMethod);
+
             try
             {
                 HelpingMethods.fileCorr = true;
@@ -61,12 +68,18 @@ namespace ClassLib
                 if (title.ToString() == HelpingMethods.Title.ToString()) { heroesFromJson.RemoveAt(0); }
                 if (secondTitle.ToString() == HelpingMethods.SecondTitle.ToString()) { heroesFromJson.RemoveAt(0); }
                 HelpingMethods.currentAeroexpressTable = heroesFromJson;
+
+                Logger.WriteLog(nameof(Read), ConstStrings.endMethod);
+
                 return heroesFromJson;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 HelpingMethods.fileCorr = false;
+
+                Logger.WriteExceptionLog(nameof(Read), ex);
+
                 return new List<AeroexpressTable>(0);
             }
         }

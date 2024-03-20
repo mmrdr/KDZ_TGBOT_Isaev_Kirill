@@ -49,6 +49,8 @@ namespace ClassLib
 
         internal static void StationSelection(string fieldToSelect, string value)
         {
+            Logger.WriteLog(nameof(StationSelection), ConstStrings.startMethod);
+
             SelectedAeroexpressTableCsv = new List<AeroexpressTable>(HelpingMethods.currentAeroexpressTable);
 
             if (fieldToSelect.StartsWith("StationStart"))
@@ -61,32 +63,46 @@ namespace ClassLib
             }
             if (SelectedAeroexpressTableCsv.Count == 0) return;
             HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
+
+            Logger.WriteLog(nameof(StationSelection), ConstStrings.endMethod);
         }
 
         internal static void BothStationSelect(string[] values)
         {
+            Logger.WriteLog(nameof(BothStationSelect), ConstStrings.startMethod);
+
             SelectedAeroexpressTableCsv = new List<AeroexpressTable>(HelpingMethods.currentAeroexpressTable);
             SelectedAeroexpressTableCsv = SelectedAeroexpressTableCsv.Where(x => x.StationStart == values[0] && x.StationEnd == values[1]).ToList();
             if (SelectedAeroexpressTableCsv.Count == 0) return;
             HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
+
+            Logger.WriteLog(nameof(BothStationSelect), ConstStrings.endMethod);
         }
 
         internal static void SortTimeStart()
         {
+            Logger.WriteLog(nameof(SortTimeStart), ConstStrings.startMethod);
+
             AeroexpressTable[] tables = new AeroexpressTable[HelpingMethods.currentAeroexpressTable.Count];
             HelpingMethods.currentAeroexpressTable.CopyTo(tables, 0);
             tables = tables.OrderBy(x => x.TimeStart).ToArray();
             SelectedAeroexpressTableCsv = tables.ToList();
             HelpingMethods.currentAeroexpressTable = tables.ToList();
+
+            Logger.WriteLog(nameof(SortTimeStart), ConstStrings.endMethod);
         }
 
         internal static void SortTimeEnd()
         {
+            Logger.WriteLog(nameof(SortTimeEnd), ConstStrings.startMethod);
+
             AeroexpressTable[] tables = new AeroexpressTable[HelpingMethods.currentAeroexpressTable.Count];
             HelpingMethods.currentAeroexpressTable.CopyTo(tables, 0);
             tables = tables.OrderBy(x => x.TimeEnd).ToArray();
             SelectedAeroexpressTableCsv = tables.ToList();
             HelpingMethods.currentAeroexpressTable = tables.ToList();
+
+            Logger.WriteLog(nameof(SortTimeEnd), ConstStrings.endMethod);
         }
     }
 }

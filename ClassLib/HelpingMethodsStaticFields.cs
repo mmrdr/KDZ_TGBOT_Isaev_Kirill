@@ -8,7 +8,7 @@ namespace ClassLib
 {
     public partial class HelpingMethods
     {
-        internal static char fileSeparator = Path.DirectorySeparatorChar;
+        internal static string LogPath;
 
         // To count files.
         public static int numberOfFile;

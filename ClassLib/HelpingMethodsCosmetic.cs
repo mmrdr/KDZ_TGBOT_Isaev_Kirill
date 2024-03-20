@@ -44,5 +44,18 @@ namespace ClassLib
             { ResizeKeyboard = true };
             return replyKeyboard;
         }
+
+        internal static InlineKeyboardMarkup ShowMagic()
+        {
+            var inlineKeyboard = new InlineKeyboardMarkup(
+            new List<InlineKeyboardButton[]>()
+            {
+                new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithUrl("Click", "https://www.youtube.com/watch?v=5yb2N3pnztU&ab_channel=TOHOanimation%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB"),
+                },
+            });
+            return inlineKeyboard;
+        }
     }
 }

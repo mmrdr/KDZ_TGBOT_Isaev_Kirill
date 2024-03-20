@@ -12,18 +12,23 @@ namespace ClassLib
     public partial class HelpingMethods
     {
 
-        internal static void GetPathForFile()
+        public static void GetPathForFile()
         {
             Process process = Process.GetCurrentProcess();
-            filePath = process.MainModule.FileName;
-            filePath = Path.GetDirectoryName(filePath);
-            filePath = Path.GetDirectoryName(filePath);
-            filePath = Path.GetDirectoryName(filePath);
-            filePath = Path.GetDirectoryName(filePath);
-            filePath += "\\Data";
+            var tempPath = process.MainModule.FileName;
+            for (int i = 0;i < 5; i++)
+            {
+                tempPath = Path.GetDirectoryName(tempPath);
+            }
+            filePath = tempPath + "\\Data";
             if (!Directory.Exists(filePath))
             {
                 Directory.CreateDirectory(filePath);
+            }
+            LogPath = tempPath + "\\var";
+            if (!Directory.Exists(LogPath))
+            {
+                Directory.CreateDirectory(LogPath);
             }
         }
 

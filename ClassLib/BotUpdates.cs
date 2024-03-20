@@ -23,6 +23,7 @@ namespace Smth
             if (update.Type == UpdateType.Message)
             {
                 var message = update.Message;
+                Console.WriteLine($"Пользователь {message.From} написал сообщение \"{message.Text}\" в {DateTime.Now}");
                 if (message.Text == "/start")
                 {
                     await botClient.SendTextMessageAsync(message.Chat.Id, "Привет! Для начала - прикрепи файл!\n" +
@@ -30,16 +31,7 @@ namespace Smth
                 }
                 else if (message.Text == "Что такое магическая битва?")
                 {
-                    var inlineKeyboard = new InlineKeyboardMarkup(
-                    new List<InlineKeyboardButton[]>()
-                    {
-                        new InlineKeyboardButton[]
-                        {
-                            InlineKeyboardButton.WithUrl("Click", "https://www.youtube.com/watch?v=5yb2N3pnztU&ab_channel=TOHOanimation%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB"),
-                        },
-                    });
-
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "Прекрасный вопрос, тут Вы найдете опенинг", replyMarkup: inlineKeyboard);
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "Прекрасный вопрос, тут Вы найдете опенинг", replyMarkup: HelpingMethods.ShowMagic());
                 }
                 else if (HelpingMethods.IsSelecting)
                 {

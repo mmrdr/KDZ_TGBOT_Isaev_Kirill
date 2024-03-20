@@ -26,7 +26,6 @@ namespace ClassLib
 
         internal static async Task DownloadData(Update update)
         {
-            HelpingMethods.GetPathForFile();
             string fileName = update.Message.Document.FileName;
 
             if (fileName.EndsWith(".csv"))

@@ -13,28 +13,37 @@ namespace Smth
     public class Program
     {
         static async Task Main(string[] args)
-        {
-            HelpingMethods.numberOfFile = 0;
-            BotUpdates.botClient = new TelegramBotClient(BotUpdates.TELEGRAM_TOKEN);
-            BotUpdates.receiverOptions = new ReceiverOptions
+        { 
+            try
             {
-                AllowedUpdates = new[]
+                HelpingMethods.GetPathForFile();
+                Logger logger = new Logger();
+                HelpingMethods.numberOfFile = 0;
+                BotUpdates.botClient = new TelegramBotClient(BotUpdates.TELEGRAM_TOKEN);
+                BotUpdates.receiverOptions = new ReceiverOptions
                 {
+                    AllowedUpdates = new[]
+                    {
                     UpdateType.Message,
                     UpdateType.CallbackQuery
                 },
-                ThrowPendingUpdates = true,
-            };
+                    ThrowPendingUpdates = true,
+                };
 
-            using var cts = new CancellationTokenSource();
+                using var cts = new CancellationTokenSource();
 
-            BotUpdates.botClient.StartReceiving(BotUpdates.UpdateHandler, BotUpdates.ErrorHandler, BotUpdates.receiverOptions, cts.Token);
+                BotUpdates.botClient.StartReceiving(BotUpdates.UpdateHandler, BotUpdates.ErrorHandler, BotUpdates.receiverOptions, cts.Token);
 
-            var me = BotUpdates.botClient.GetMeAsync().Result;
+                var me = BotUpdates.botClient.GetMeAsync().Result;
 
-            Console.WriteLine($"{me.FirstName} запущен!");
+                Console.WriteLine($"{me.FirstName} запущен!");
 
-            await Task.Delay(-1);
+                await Task.Delay(-1);
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteExceptionLog(nameof(Main), ex);
+            }
         }
     }
 }

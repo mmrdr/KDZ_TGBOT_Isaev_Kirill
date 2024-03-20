@@ -43,6 +43,8 @@ namespace ClassLib
 
         internal static List<AeroexpressTable> Read(Stream stream)
         {
+            Logger.WriteLog(nameof(Read), ConstStrings.startMethod);
+
             var temporaryAeroexpressTableCsv = new List<AeroexpressTable>();
             HelpingMethods.fileCorr = true;
             using (StreamReader file = new StreamReader(stream))
@@ -92,11 +94,16 @@ namespace ClassLib
                 }
             }
             HelpingMethods.currentAeroexpressTable = temporaryAeroexpressTableCsv;
+
+            Logger.WriteLog(nameof(Read), ConstStrings.endMethod);
+
             return temporaryAeroexpressTableCsv;
         }
 
         internal static Stream Write()
         {
+            Logger.WriteLog(nameof(Write), ConstStrings.startMethod);
+
             var writePath = HelpingMethods.filePath.Replace(".csv", "").Replace(".json", "") + $"\\BeautyOutput(edited({HelpingMethods.numberOfFile})).csv";
             Console.WriteLine(writePath);
             Stream stream  = System.IO.File.Create(writePath);
@@ -109,6 +116,8 @@ namespace ClassLib
                 }
             }
             stream.Close();
+
+            Logger.WriteLog(nameof(Write), ConstStrings.endMethod);
 
             return new FileStream(writePath, FileMode.Open);
         }

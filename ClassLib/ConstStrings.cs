@@ -8,6 +8,7 @@ namespace ClassLib
 {
     internal class ConstStrings
     {
-        
+        internal const string startMethod = "starts";
+        internal const string endMethod = "ends";
     }
 }
