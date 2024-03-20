@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using Smth;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -46,97 +47,85 @@ namespace ClassLib
             return true;
         }
 
-        internal static bool CheckFileCor()
-        {
-            int count = 0;
-            Count = count;
-            using (StreamReader file = new StreamReader(HelpingMethods.filePath))
-            {
-                string? line = file.ReadLine();
-                List<string> title = line.Split(csvSeparator).ToList();
-                title.RemoveAt(title.Count-1);
-                if (line == null)
-                {
-                    return false;
-                }
-                if (title.Count != NumOfFields)
-                {
-                    return false;
-                }
-                line = file.ReadLine();
-                while ((line = file.ReadLine()) != null)
-                {
-                    List<string> record = line.Split(csvSeparator).ToList();
-                    record.RemoveAt(record.Count-1);
-                    if (NumOfFields != record.Count || !CheckFileData(record, NumOfFields))
-                    {
-                        return false;
-                    }
-                    Count++;
-                }
-                return true;
-            }
-        }
-
         internal static string CheckKovichka(string line)
         {
             string answer = new string(line.Where(sym => sym != '\"' && sym != ';').ToArray());
             return answer;
         }
 
-        internal static AeroexpressTable[] Read()
+        internal static List<AeroexpressTable> Read(Stream stream)
         {
+            var temporaryAeroexpressTableCsv = new List<AeroexpressTable>();
             fileCorr = true;
-            if (!CheckFileCor())
-            {
-                Console.WriteLine("Некорректный файл");
-                fileCorr = false;
-                return new AeroexpressTable[0];
-            }
-            using (StreamReader file = new StreamReader(HelpingMethods.filePath))
+            using (StreamReader file = new StreamReader(stream))
             {
                 string? line = file.ReadLine();
+                List<string> title = line.Split(csvSeparator).ToList();
+                title.RemoveAt(title.Count - 1);
+                if (line == null)
+                {
+                    Console.WriteLine("Некорректный файл");
+                    fileCorr = false;
+                    return new List<AeroexpressTable>(0);
+                }
+                if (title.Count != NumOfFields)
+                {
+                    Console.WriteLine("Некорректный файл");
+                    fileCorr = false;
+                    return new List<AeroexpressTable>(0);
+                }
                 Title = line;
                 line = file.ReadLine();
                 Second = line;
-                string[] records = new string[Count];
-                string[] finalLines = new string[Count];
-                var temporaryAeroexpressTableCsv = new AeroexpressTable[Count];
+                List<string> records = new List<string>();
+                List<string> finalLines = new List<string>();
                 int iterCount = 0;
                 while ((line = file.ReadLine()) != null)
                 {
-                    finalLines[iterCount] = line;
+                    List<string> record = line.Split(csvSeparator).ToList();
+                    record.RemoveAt(record.Count - 1);
+                    if (NumOfFields != record.Count || !CheckFileData(record, NumOfFields))
+                    {
+                        Console.WriteLine("Некорректный файл");
+                        fileCorr = false;
+                        return new List<AeroexpressTable>(0);
+                    }
 
-                    records = line.Split(csvSeparator);
+                    finalLines.Add(line);
 
-                    temporaryAeroexpressTableCsv[iterCount++] = new AeroexpressTable(CheckKovichka(records[0]),
+                    records = line.Split(csvSeparator).ToList();
+
+                    temporaryAeroexpressTableCsv.Add(new AeroexpressTable(CheckKovichka(records[0]),
                         CheckKovichka(records[1]),
                         CheckKovichka(records[2]),
                         CheckKovichka(records[3]),
                         CheckKovichka(records[4]),
                         CheckKovichka(records[5]),
-                        CheckKovichka(records[6]));
+                        CheckKovichka(records[6])));
                 }
-                HelpingMethods.currentAeroexpressTable = temporaryAeroexpressTableCsv.ToList();
-                return temporaryAeroexpressTableCsv;
             }
+            HelpingMethods.currentAeroexpressTable = temporaryAeroexpressTableCsv;
+            return temporaryAeroexpressTableCsv;
         }
 
-        internal static string Write()
+        internal static Stream Write()
         {
             var writePath = HelpingMethods.filePath.Replace(".csv", "").Replace(".json", "") + $"(edited({HelpingMethods.numberOfFile})).csv";
-            using (StreamWriter writer = new StreamWriter(writePath))
+            Stream stream  = System.IO.File.Create(writePath);
+            using (StreamWriter writer = new StreamWriter(stream))
             {
                 writer.WriteLine(Title); writer.WriteLine(Second);
                 foreach (var table in HelpingMethods.currentAeroexpressTable)
                 {
                     writer.WriteLine(table.ToString());
                 }
-                return writePath;
             }
+            stream.Close();
+
+            return new FileStream(writePath, FileMode.Open);
         }
 
-        internal static async Task<string> DownloadFile(ITelegramBotClient botClient, Update update)
+        internal static async Task<Stream> DownloadFile(ITelegramBotClient botClient, Update update)
         {
             var fileId = update.Message.Document.FileId;
             var path = HelpingMethods.filePath + $"\\LastUserInput.csv";
@@ -144,8 +133,7 @@ namespace ClassLib
             Stream fileStream = System.IO.File.Create(path);
             await botClient.GetInfoAndDownloadFileAsync(fileId, fileStream);
             fileStream.Close();
-            HelpingMethods.filePath = path;
-            return path;
+            return new FileStream(path, FileMode.Open);
         }
 
         internal static async Task UploadFile(ITelegramBotClient botClient, Update update, Stream stream)
@@ -183,12 +171,28 @@ namespace ClassLib
 
         internal static void TakeValuesToSelect(string message)
         {
-            var answer = message.Split(';');
-            HelpingMethods.curValuesToSelect = new string[2];
-            HelpingMethods.curValuesToSelect[0] = answer[0];
-            HelpingMethods.curValuesToSelect[1] = answer[1];
-        }
+            var countSep = 0;
+            for (int i = 0; i < message.Length; i++)
+            {
+               if (message[i] == ';') countSep++;
+            }
 
+            if (countSep == 1)
+            {
+                var answer = message.Split(';');
+                HelpingMethods.curValuesToSelect = new string[2];
+                HelpingMethods.curValuesToSelect[0] = answer[0];
+                HelpingMethods.curValuesToSelect[1] = answer[1];
+            }
+            else
+            {
+                Console.WriteLine("Некорректные данные\n" +
+                "Выборка не будет осуществленна");
+                HelpingMethods.curValuesToSelect = new string[2];
+                HelpingMethods.curValuesToSelect[0] = "";
+                HelpingMethods.curValuesToSelect[1] = "";
+            }
+        }
 
         internal static void StationSelection(string fieldToSelect, string value)
         {
@@ -202,7 +206,7 @@ namespace ClassLib
             {
                 SelectedAeroexpressTableCsv = SelectedAeroexpressTableCsv.Where(x => x.StationEnd == value).ToList();
             }
-
+            if (SelectedAeroexpressTableCsv.Count == 0) return;
             HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
         }
 
@@ -210,6 +214,7 @@ namespace ClassLib
         {
             SelectedAeroexpressTableCsv = new List<AeroexpressTable>(HelpingMethods.currentAeroexpressTable);
             SelectedAeroexpressTableCsv = SelectedAeroexpressTableCsv.Where(x => x.StationStart == values[0] && x.StationEnd == values[1]).ToList();
+            if (SelectedAeroexpressTableCsv.Count == 0) return;
             HelpingMethods.currentAeroexpressTable = SelectedAeroexpressTableCsv;
         }
 

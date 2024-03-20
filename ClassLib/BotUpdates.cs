@@ -217,7 +217,7 @@ namespace Smth
 
         private static async void Answer(Update update)
         {
-            if (HelpingMethods.currentAeroexpressTable.Count == 0)
+            if (HelpingMethods.currentAeroexpressTable.Count == 0 || CSVProcessing.SelectedAeroexpressTableCsv.Count == 0)
                 await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Не нашлось значения.\n" +
                     "Что дальше?", replyMarkup: HelpingMethods.ShowButtons());
             else await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Успех, проведена выборка.\n" +

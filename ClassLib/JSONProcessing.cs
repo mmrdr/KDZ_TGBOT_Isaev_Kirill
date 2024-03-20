@@ -15,19 +15,27 @@ namespace ClassLib
         /// </summary>
         /// <param name="heroes">This is list, that gives method data to serialize it to the file.</param>
         /// <param name="filePath">This path refer to file, that will take data from method.</param>
-        public static string Write()
+        public static Stream Write()
         {
             var title = HelpingMethods.ConvertToAeroexpress(CSVProcessing.Title);
             var secondTitle = HelpingMethods.ConvertToAeroexpress(CSVProcessing.Second);
             HelpingMethods.currentAeroexpressTable.Insert(0, title);
             HelpingMethods.currentAeroexpressTable.Insert(1, secondTitle);
-            var writePath = HelpingMethods.filePath.Replace(".json", "").Replace(".csv", "") + $"(edited({HelpingMethods.numberOfFile})).json";
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             var json = JsonSerializer.Serialize(HelpingMethods.currentAeroexpressTable, jsonOptions);
-            File.WriteAllText(writePath, json, Encoding.UTF8);
+            var writePath = HelpingMethods.filePath.Replace(".json", "").Replace(".csv", "") + $"(edited({HelpingMethods.numberOfFile})).json";
+            Stream stream = File.Create(writePath);
+            TextWriter oldOut = Console.Out;
+            using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
+            {
+                Console.SetOut(writer);
+                Console.Write(json);
+            }
+            Console.SetOut(oldOut);
+            stream.Close();
             HelpingMethods.currentAeroexpressTable.RemoveAt(0);
             HelpingMethods.currentAeroexpressTable.RemoveAt(0);
-            return writePath;
+            return new FileStream(writePath, FileMode.Open);
         }
 
         /// <summary>
@@ -35,11 +43,17 @@ namespace ClassLib
         /// </summary>
         /// <param name="filePath">This path refer to file, that will gives data to this method.</param>
         /// <returns>List with json's data.</returns>
-        public static List<AeroexpressTable> Read(string filePath)
+        public static List<AeroexpressTable> Read(Stream stream)
         {
             AeroexpressTable title;
             AeroexpressTable secondTitle;
-            string json = File.ReadAllText(filePath);
+            TextReader oldIn = Console.In;
+            var json = "";
+            using (StreamReader streamReader = new StreamReader(stream))
+            {
+                Console.SetIn(streamReader);
+                json = streamReader.ReadToEnd();
+            }
             var heroesFromJson = JsonSerializer.Deserialize<List<AeroexpressTable>>(json);
             HelpingMethods.currentAeroexpressTable = heroesFromJson;
             if (HelpingMethods.currentAeroexpressTable[0] == (title = HelpingMethods.ConvertToAeroexpress(CSVProcessing.Title))) HelpingMethods.currentAeroexpressTable.RemoveAt(0);

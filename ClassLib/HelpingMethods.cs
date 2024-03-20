@@ -64,13 +64,13 @@ namespace ClassLib
 
             if (fileName.EndsWith(".csv"))
             {
-                var path = await CSVProcessing.DownloadFile(BotUpdates.botClient, update);
-                var temporaryTableCsv = CSVProcessing.Read();
+                BotUpdates.lastCsvDownload = await CSVProcessing.DownloadFile(BotUpdates.botClient, update);
+                var temporaryTableCsv = CSVProcessing.Read(BotUpdates.lastCsvDownload);
             }
             else if (fileName.EndsWith(".json"))
             {
-                var path = await CSVProcessing.DownloadFile(BotUpdates.botClient, update);
-                var temporaryTableJson = JSONProcessing.Read(filePath);
+                BotUpdates.lastJsonDownload = await CSVProcessing.DownloadFile(BotUpdates.botClient, update);
+                var temporaryTableJson = JSONProcessing.Read(BotUpdates.lastJsonDownload);
             }
             else
             {
@@ -80,16 +80,14 @@ namespace ClassLib
 
         internal static async Task UploadCsvFile(ITelegramBotClient botClient, Update update)
         {
-            var path = CSVProcessing.Write();
-            Stream stream = System.IO.File.OpenRead(path);
-            Message message = await botClient.SendDocumentAsync(update.Message.Chat.Id, InputFile.FromStream(stream, $"aeroexpress(edited).csv"));
+            BotUpdates.lastCsvUpload = CSVProcessing.Write();
+            Message message = await botClient.SendDocumentAsync(update.Message.Chat.Id, InputFile.FromStream(BotUpdates.lastCsvUpload, $"aeroexpress(edited).csv"));
         }
 
         internal static async Task UploadJsonFile(ITelegramBotClient botClient, Update update)
         {
-            var path = JSONProcessing.Write();
-            Stream stream = System.IO.File.OpenRead(path);
-            Message message = await botClient.SendDocumentAsync(update.Message.Chat.Id, InputFile.FromStream(stream, $"aeroexpress(edited).json"));
+            BotUpdates.lastJsonUpload = JSONProcessing.Write();
+            Message message = await botClient.SendDocumentAsync(update.Message.Chat.Id, InputFile.FromStream(BotUpdates.lastJsonUpload, $"aeroexpress(edited).json"));
         }
 
         internal static AeroexpressTable ConvertToAeroexpress(string title)
