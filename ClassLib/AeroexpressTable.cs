@@ -8,6 +8,9 @@ using System.Text.Json.Serialization;
 
 namespace ClassLib
 {
+    /// <summary>
+    /// Класс, реализующий "базу данных". В полях этого класса хранится вся информация из файлов из чата с ботом.
+    /// </summary>
     public class AeroexpressTable
     {
         // Эти поля соответствуют записям из строки.

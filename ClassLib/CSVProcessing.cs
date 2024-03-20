@@ -6,8 +6,13 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ClassLib
 {
+    /// <summary>
+    /// Класс, реализующий обработку файлов с расширением csv.
+    /// </summary>
     public class CSVProcessing
     {
+        // Ниже все важные статические поля, необходимые для корректной работы методов.
+
         internal static char csvSeparator = ';';  
 
         internal static int NumOfFields = 7;
@@ -16,6 +21,12 @@ namespace ClassLib
 
         private static string Second = HelpingMethods.SecondTitle.ToString();
 
+        /// <summary>
+        /// Метод, проверяющий каждую строку из csv файла.
+        /// </summary>
+        /// <param name="records">Строка с данными.</param>
+        /// <param name="length">Сколько данных в строке проверить.</param>
+        /// <returns>Корректны данные или нет.</returns>
         private static bool CheckFileData(List<string> records, int length)
         {
             for (int i = 0; i < length; i++)
@@ -40,7 +51,11 @@ namespace ClassLib
             }
             return true;
         }
-
+        /// <summary>
+        /// Считывает данные из csv файла.
+        /// </summary>
+        /// <param name="stream">Использует этот поток.</param>
+        /// <returns>Данные из csv файла в виде листа типа AeroexpressTable.</returns>
         internal static List<AeroexpressTable> Read(Stream stream)
         {
             Logger.WriteLog(nameof(Read), ConstStrings.startMethod);
@@ -51,7 +66,7 @@ namespace ClassLib
             {
                 string? line = file.ReadLine();
                 List<string> title = line.Split(csvSeparator).ToList();
-                title.RemoveAt(title.Count - 1);
+                title.RemoveAt(title.Count - 1); // В строке есть лишнее 8 поле - пустой символ. Удаляем.
                 if (line == null)
                 {
                     Console.WriteLine("Некорректный файл");
@@ -64,15 +79,15 @@ namespace ClassLib
                     HelpingMethods.fileCorr = false;
                     return new List<AeroexpressTable>(0);
                 }
-                Title = line;
+                Title = line; // Заголовок файла не понадобится.
                 line = file.ReadLine();
-                Second = line;
+                Second = line; // Эта строка тоже не содержит важных данных, убираем в отдельную переменную.
                 List<string> records = new List<string>();
                 List<string> finalLines = new List<string>();
                 while ((line = file.ReadLine()) != null)
                 {
                     List<string> record = line.Split(csvSeparator).ToList();
-                    record.RemoveAt(record.Count - 1);
+                    record.RemoveAt(record.Count - 1); 
                     if (NumOfFields != record.Count || !CheckFileData(record, NumOfFields))
                     {
                         Console.WriteLine("Некорректный файл");
@@ -100,11 +115,17 @@ namespace ClassLib
             return temporaryAeroexpressTableCsv;
         }
 
+        /// <summary>
+        /// Записывает данные из AeroexressTable в csv файл.
+        /// </summary>
+        /// <returns>Поток, куда файл записали.</returns>
         internal static Stream Write()
         {
             Logger.WriteLog(nameof(Write), ConstStrings.startMethod);
 
-            var writePath = HelpingMethods.filePath.Replace(".csv", "").Replace(".json", "") + $"\\BeautyOutput(edited({HelpingMethods.numberOfFile})).csv";
+            // Пояснение к ужасу снизу: 1). Чтобы не дублировалось расширение файла, удаляю его с помощью метода Replace.
+            // 2). Чтобы работал поток, файлы должны быть с разным названием, это реализует переменная numberOfFile.
+            var writePath = HelpingMethods.filePath.Replace(".csv", "").Replace(".json", "") + $"\\BeautyOutput(edited({HelpingMethods.numberOfFile})).csv"; 
             Console.WriteLine(writePath);
             Stream stream  = System.IO.File.Create(writePath);
             using (StreamWriter writer = new StreamWriter(stream))
@@ -121,7 +142,13 @@ namespace ClassLib
 
             return new FileStream(writePath, FileMode.Open);
         }
-
+        /// <summary>
+        /// Выгружает файл в чат с ботом.
+        /// </summary>
+        /// <param name="botClient">Наш бот.</param>
+        /// <param name="update">Текущее сообщение.</param>
+        /// <param name="stream">Поток, откуда будет взят файл.</param>
+        /// <returns></returns>
         internal static async Task UploadFile(ITelegramBotClient botClient, Update update, Stream stream)
         {
             var replyKeyboard = new ReplyKeyboardMarkup(new List<KeyboardButton[]>

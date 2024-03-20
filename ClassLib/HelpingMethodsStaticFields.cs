@@ -6,29 +6,25 @@ using System.Threading.Tasks;
 
 namespace ClassLib
 {
+    /// <summary>
+    /// Эта часть partial-класса HelpingMethods, реализует все статические поля, необходимые в различных методах из других классов.
+    /// </summary>
     public partial class HelpingMethods
     {
         internal static string LogPath;
 
-        // To count files.
         public static int numberOfFile;
 
-        // For method GetPathForFile.
         internal static string filePath;
 
-        // To store information from a file.
         internal static List<AeroexpressTable> currentAeroexpressTable;
 
-        // To alert the "Selection" status.
         internal static bool IsSelecting;
 
-        // The field for which the selection will be made.
         internal static string curFieldToSelect;
 
-        // The value for which the selection will be made.
         internal static string curValueToSelect;
 
-        // The values for which the selection will be made(For method BothStationSelect).
         internal static string[] curValuesToSelect;
 
         internal static bool fileCorr;

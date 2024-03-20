@@ -9,10 +9,20 @@ using Smth;
 
 namespace ClassLib
 {
+    /// <summary>
+    /// Класс, реализующий взаимодействие с чатом бота.
+    /// </summary>
     internal class BotIteraction
     {
+        // Постоянно запоминаем, в каком потоке работаем.
         private static Stream lastCsvDownload, lastCsvUpload, lastJsonDownload, lastJsonUpload;
 
+        /// <summary>
+        /// Метод, загружающий файл из чата.
+        /// </summary>
+        /// <param name="botClient">Наш бот.</param>
+        /// <param name="update">Текущее сообщение.</param>
+        /// <returns>Поток, где находится файл.</returns>
         internal static async Task<Stream> DownloadFile(ITelegramBotClient botClient, Update update)
         {
             var fileId = update.Message.Document.FileId;
@@ -24,6 +34,11 @@ namespace ClassLib
             return new FileStream(path, FileMode.Open);
         }
 
+        /// <summary>
+        /// Метод, определяющий какого типа файл скину пользователь. В дальнейшем - загружает его из чата и считывает из файла в AeroexpressTable.
+        /// </summary>
+        /// <param name="update">Текущее сообщение.</param>
+        /// <returns></returns>
         internal static async Task DownloadData(Update update)
         {
             string fileName = update.Message.Document.FileName;
@@ -44,12 +59,24 @@ namespace ClassLib
             }
         }
 
+        /// <summary>
+        /// Метод, загружающий csv файл в чат.
+        /// </summary>
+        /// <param name="botClient">Наш бот.</param>
+        /// <param name="update">Текущее сообщение.</param>
+        /// <returns></returns>
         internal static async Task UploadCsvFile(ITelegramBotClient botClient, Update update)
         {
             lastCsvUpload = CSVProcessing.Write();
             Message message = await botClient.SendDocumentAsync(update.Message.Chat.Id, InputFile.FromStream(lastCsvUpload, $"aeroexpress(edited).csv"));
         }
 
+        /// <summary>
+        /// Метод, загружающий json файл в чат.
+        /// </summary>
+        /// <param name="botClient">Наш бот.</param>
+        /// <param name="update">Текущее сообщение.</param>
+        /// <returns></returns>
         internal static async Task UploadJsonFile(ITelegramBotClient botClient, Update update)
         {
             lastJsonUpload = JSONProcessing.Write();

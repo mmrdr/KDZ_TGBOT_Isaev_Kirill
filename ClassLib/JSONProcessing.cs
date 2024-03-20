@@ -5,13 +5,15 @@ using System.Text.Unicode;
 
 namespace ClassLib
 {
+    /// <summary>
+    /// Класс, реализующий обработку файлов с расширением json.
+    /// </summary>
     public class JSONProcessing
     {
         /// <summary>
-        /// This method serialize data to some file.
+        /// Метод записывает данные вида AeroexpressTable в json файл.
         /// </summary>
-        /// <param name="heroes">This is list, that gives method data to serialize it to the file.</param>
-        /// <param name="filePath">This path refer to file, that will take data from method.</param>
+        /// <returns>Поток, куда был записан json файл.</returns>
         public static Stream Write()
         {
             Logger.WriteLog(nameof(Write), ConstStrings.startMethod);
@@ -42,10 +44,10 @@ namespace ClassLib
         }
 
         /// <summary>
-        /// This method deserialize data from json file to C# object(Hero,Units).
+        /// Метод считывает данные из json файла.
         /// </summary>
-        /// <param name="filePath">This path refer to file, that will gives data to this method.</param>
-        /// <returns>List with json's data.</returns>
+        /// <param name="stream">Берет данные из этого потока.</param>
+        /// <returns>Лист типа AeroexpressTable, с данными из json файла.</returns>
         public static List<AeroexpressTable> Read(Stream stream)
         {
             Logger.WriteLog(nameof(Read), ConstStrings.startMethod);
@@ -53,8 +55,8 @@ namespace ClassLib
             try
             {
                 HelpingMethods.fileCorr = true;
-                AeroexpressTable title;
-                AeroexpressTable secondTitle;
+                AeroexpressTable title; // Это все махинации с первыми двумя строками файла, они будут не нужны во время действий с данными.
+                AeroexpressTable secondTitle; // Просто удаляю две верхние строчки.
                 TextReader oldIn = Console.In;
                 var json = "";
                 using (StreamReader streamReader = new StreamReader(stream))
@@ -65,8 +67,8 @@ namespace ClassLib
                 var heroesFromJson = JsonSerializer.Deserialize<List<AeroexpressTable>>(json);
                 title = heroesFromJson[0];
                 secondTitle = heroesFromJson[1];
-                if (title.ToString() == HelpingMethods.Title.ToString()) { heroesFromJson.RemoveAt(0); }
-                if (secondTitle.ToString() == HelpingMethods.SecondTitle.ToString()) { heroesFromJson.RemoveAt(0); }
+                if (title.ToString() == HelpingMethods.Title.ToString()) { heroesFromJson.RemoveAt(0); } // Это все махинации с первыми двумя строками файла, они будут не нужны во время действий с данными.
+                if (secondTitle.ToString() == HelpingMethods.SecondTitle.ToString()) { heroesFromJson.RemoveAt(0); } // Просто удаляю две верхние строчки.
                 HelpingMethods.currentAeroexpressTable = heroesFromJson;
 
                 Logger.WriteLog(nameof(Read), ConstStrings.endMethod);
@@ -83,7 +85,10 @@ namespace ClassLib
                 return new List<AeroexpressTable>(0);
             }
         }
-
+        /// <summary>
+        /// Превращает что-то в json строку.
+        /// </summary>
+        /// <returns>Строку, которую можно представить в виде json файла.</returns>
         public string ToJson()
         {
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };

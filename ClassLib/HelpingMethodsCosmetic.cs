@@ -2,13 +2,16 @@
 
 namespace ClassLib
 {
+    /// <summary>
+    /// Эта часть partial-класса HelpingMethods добавляет красивый вывод для пользователя.
+    /// </summary>
     public partial class HelpingMethods
     {
         /// <summary>
-        /// This method makes text more beauty.
+        /// Метод делает текст цветным.
         /// </summary>
-        /// <param name="text">This text will be modified</param>
-        /// <param name="color">Text will be decorated by this color</param>
+        /// <param name="text">Редактирует этот текст.</param>
+        /// <param name="color">Меняет цвет текста, на этот.</param>
         internal static void PrintWithColor(string text, ConsoleColor color)
         {
             Console.ForegroundColor = color;
@@ -17,34 +20,37 @@ namespace ClassLib
         }
 
         /// <summary>
-        /// Displays buttons in the bot.
+        /// Метод создает клавиатуру для взаимодействия с пользователем в боте.
         /// </summary>
-        /// <returns> Keyboard.</returns>
+        /// <returns> Клавиатуру.</returns>
         internal static ReplyKeyboardMarkup ShowButtons()
         {
             var replyKeyboard = new ReplyKeyboardMarkup(new List<KeyboardButton[]>
             {
                 new KeyboardButton[]
                 {
-                    new KeyboardButton("Выборка по StationStart"),
-                    new KeyboardButton("Выборка по StationEnd"),
-                    new KeyboardButton("Выборка по StationStart,StationEnd")
+                    new KeyboardButton(ConstStrings.funcSelStationStart),
+                    new KeyboardButton(ConstStrings.funcSelStationEnd),
+                    new KeyboardButton(ConstStrings.funcSelBoth)
                 },
                 new KeyboardButton[]
                 {
-                    new KeyboardButton("Сортировка по TimeStart(в порядке увеличения времени)"),
-                    new KeyboardButton("Сортировка по TimeEnd(в порядке увеличения времени)")
+                    new KeyboardButton(ConstStrings.funcSortTimeStart),
+                    new KeyboardButton(ConstStrings.funcSortTimeEnd)
                 },
                 new KeyboardButton[]
                 {
-                    new KeyboardButton("Выгрузить файл в формате CSV"),
-                    new KeyboardButton("Выгрузить файл в формате JSON"),
+                    new KeyboardButton(ConstStrings.funcUploadCsv),
+                    new KeyboardButton(ConstStrings.funcUploadJson),
                 }
             })
             { ResizeKeyboard = true };
             return replyKeyboard;
         }
-
+        /// <summary>
+        /// Метод-пасхалка.
+        /// </summary>
+        /// <returns> Инлайн кнопку, с пасхалкой.</returns>
         internal static InlineKeyboardMarkup ShowMagic()
         {
             var inlineKeyboard = new InlineKeyboardMarkup(
